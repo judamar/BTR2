@@ -1,0 +1,11 @@
+{
+	"id": "btr2",
+	"version": "1.0.0",
+	"name": "BTR2",
+	"description": "!!btr2 to upload last backup (slot 1) to R2 storage",
+	"author": "judamar",
+	"link": "https://github.com/judamar/BTR2",
+	"dependencies": {
+		"mcdreforged": ">=2.0.0-alpha.1"
+	}
+}
