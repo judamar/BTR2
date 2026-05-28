@@ -40,8 +40,15 @@ You can configure the plugin's behavior in the `config.json` file with the follo
 - **r2_secret_access_key**: R2 API token Secret Access Key.
 - **r2_bucket_name**: Name of the R2 bucket to use.
 - **permission**: Minimum permission level required to execute commands.
-- **comp_name**: Name of the compressed file.
-- **extension**: Backup file extension.
+- **comp_name**: Name of the compressed file (without extension).
+- **compress**: Whether to compress the backup before uploading. If `false`, files are uploaded individually without compression.
+- **extension**: Archive format to use for compression. Supported values:
+  - `zip` — ZIP archive (default, widely compatible)
+  - `tar` — Uncompressed TAR archive
+  - `gztar` — TAR with gzip compression (`.tar.gz`)
+  - `bztar` — TAR with bzip2 compression (`.tar.bz2`)
+  - `xztar` — TAR with xz compression (`.tar.xz`, best compression ratio)
+- **compression_level**: Compression level from `0` (no compression) to `9` (maximum compression). Default is `5`.
 - **fb_path**: Path prefix within the R2 bucket where files are stored.
 
 The plugin should work without additional modifications, as long as the R2 configuration is correct.
@@ -59,7 +66,19 @@ The plugin should work without additional modifications, as long as the R2 confi
   "r2_bucket_name": "",
   "permission": 0,
   "comp_name": "btr2_comp",
+  "compress": true,
   "extension": "zip",
+  "compression_level": 5,
   "fb_path": "smp/"
 }
 ```
+
+### Extension examples:
+
+| `extension` | Output file | Notes |
+|---|---|---|
+| `zip` | `btr2_comp.zip` | Default, widely compatible |
+| `tar` | `btr2_comp.tar` | No compression, fastest |
+| `gztar` | `btr2_comp.tar.gz` | Good balance of speed and size |
+| `bztar` | `btr2_comp.tar.bz2` | Better compression than gzip, slower |
+| `xztar` | `btr2_comp.tar.xz` | Best compression ratio, slowest |

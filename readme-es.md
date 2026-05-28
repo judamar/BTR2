@@ -40,8 +40,15 @@ Puedes configurar el comportamiento del complemento en el archivo `config.json` 
 - **r2_secret_access_key**: Secret Access Key del token de API de R2.
 - **r2_bucket_name**: Nombre del bucket de R2 a utilizar.
 - **permission**: Nivel mínimo de permiso requerido para ejecutar los comandos.
-- **comp_name**: Nombre del archivo comprimido.
-- **extension**: Extensión del archivo de copia de seguridad.
+- **comp_name**: Nombre del archivo comprimido (sin extensión).
+- **compress**: Si se debe comprimir la copia de seguridad antes de subirla. Si es `false`, los archivos se suben individualmente sin comprimir.
+- **extension**: Formato de archivo a usar para la compresión. Valores soportados:
+  - `zip` — Archivo ZIP (por defecto, amplia compatibilidad)
+  - `tar` — Archivo TAR sin compresión
+  - `gztar` — TAR con compresión gzip (`.tar.gz`)
+  - `bztar` — TAR con compresión bzip2 (`.tar.bz2`)
+  - `xztar` — TAR con compresión xz (`.tar.xz`, mejor ratio de compresión)
+- **compression_level**: Nivel de compresión del `0` (sin compresión) al `9` (máxima compresión). Por defecto es `5`.
 - **fb_path**: Prefijo de ruta dentro del bucket de R2 donde se almacenan los archivos.
 
 El complemento debería funcionar sin modificaciones adicionales, siempre que la configuración de R2 sea correcta.
@@ -59,7 +66,19 @@ El complemento debería funcionar sin modificaciones adicionales, siempre que la
   "r2_bucket_name": "",
   "permission": 0,
   "comp_name": "btr2_comp",
+  "compress": true,
   "extension": "zip",
+  "compression_level": 5,
   "fb_path": "smp/"
 }
 ```
+
+### Ejemplos de extensión:
+
+| `extension` | Archivo generado | Notas |
+|---|---|---|
+| `zip` | `btr2_comp.zip` | Por defecto, amplia compatibilidad |
+| `tar` | `btr2_comp.tar` | Sin compresión, más rápido |
+| `gztar` | `btr2_comp.tar.gz` | Buen equilibrio entre velocidad y tamaño |
+| `bztar` | `btr2_comp.tar.bz2` | Mejor compresión que gzip, más lento |
+| `xztar` | `btr2_comp.tar.xz` | Mejor ratio de compresión, más lento |

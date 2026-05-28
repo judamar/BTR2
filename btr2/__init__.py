@@ -29,7 +29,8 @@ def check_folder(server: PluginServerInterface):
 def compress_qb(server: PluginServerInterface):
     print_msg(server, f"§a[+]§r Compressing {conf.source_path}")
     try:
-        shutil.make_archive(out_path, conf.extension, conf.source_path)
+        shutil.make_archive(out_path, conf.extension, conf.source_path,
+                            compresslevel=conf.compression_level)
         print_msg(server, "§a[+]§r Success§r")
     except Exception as error:
         print_msg(server, f"§c[-] Compression failed§r {error}")
@@ -64,10 +65,19 @@ def upload_to_r2(server: PluginServerInterface):  # It uploads the zip file to R
     print_msg(server, f"§a[+]§r Uploading to R2 {conf.fb_path}§r")
     try:
         s3 = _get_r2_client()
-        file = out_path + "." + conf.extension
-        object_key = conf.fb_path + conf.comp_name + "." + conf.extension
-        s3.upload_file(file, conf.r2_bucket_name, object_key)
-        os.remove(file)
+        if conf.compress:
+            file = out_path + "." + conf.extension
+            object_key = conf.fb_path + conf.comp_name + "." + conf.extension
+            s3.upload_file(file, conf.r2_bucket_name, object_key)
+            os.remove(file)
+        else:
+            for dirpath, _dirnames, filenames in os.walk(conf.source_path):
+                for filename in filenames:
+                    local_file = os.path.join(dirpath, filename)
+                    relative = os.path.relpath(local_file, conf.source_path)
+                    object_key = conf.fb_path + conf.comp_name + \
+                        "/" + relative.replace(os.sep, "/")
+                    s3.upload_file(local_file, conf.r2_bucket_name, object_key)
         print_msg(server, "§a[+]§r Success")
     except Exception as error:
         print_msg(server, f"§c[-] Uploading failed§r {error}")
@@ -78,10 +88,22 @@ def download_from_r2(server: PluginServerInterface):
     print_msg(server, f"§a[+]§r Downloading from R2 {conf.fb_path}§r")
     try:
         s3 = _get_r2_client()
-        file = conf.comp_name + "." + conf.extension
-        object_key = conf.fb_path + conf.comp_name + "." + conf.extension
-        s3.download_file(conf.r2_bucket_name, object_key,
-                        conf.dest_path + file)
+        if conf.compress:
+            file = conf.comp_name + "." + conf.extension
+            object_key = conf.fb_path + conf.comp_name + "." + conf.extension
+            s3.download_file(conf.r2_bucket_name, object_key,
+                             conf.dest_path + file)
+        else:
+            prefix = conf.fb_path + conf.comp_name + "/"
+            paginator = s3.get_paginator('list_objects_v2')
+            for page in paginator.paginate(Bucket=conf.r2_bucket_name, Prefix=prefix):
+                for obj in page.get('Contents', []):
+                    relative = obj['Key'][len(prefix):]
+                    local_file = os.path.join(
+                        conf.source_path, *relative.split("/"))
+                    os.makedirs(os.path.dirname(local_file), exist_ok=True)
+                    s3.download_file(conf.r2_bucket_name,
+                                     obj['Key'], local_file)
         print_msg(server, "§a[+]§r Success")
     except Exception as error:
         print_msg(server, f"§c[-] ERROR§r {error}")
@@ -89,14 +111,16 @@ def download_from_r2(server: PluginServerInterface):
 
 @new_thread("BTR2 Upload")
 def upload(server: PluginServerInterface):
-    compress_qb(server)
+    if conf.compress:
+        compress_qb(server)
     upload_to_r2(server)
 
 
 @new_thread("BTR2 Download")
 def download(server: PluginServerInterface):
     download_from_r2(server)
-    extract_qb(server)
+    if conf.compress:
+        extract_qb(server)
 
 # |REGISTER COMMANDS|
 

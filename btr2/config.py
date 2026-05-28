@@ -13,5 +13,7 @@ class Configure(Serializable):
     r2_bucket_name: str = ''
     permission: int = 0
     comp_name: str = 'btr2_comp'
+    compress: bool = True
     extension: str = 'zip'
+    compression_level: int = 5
     fb_path: str = 'smp/'
