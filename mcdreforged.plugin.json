@@ -1,6 +1,6 @@
 {
 	"id": "btr2",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"name": "BTR2",
 	"description": "!!btr2 to upload last backup (slot 1) to R2 storage",
 	"author": "judamar",
